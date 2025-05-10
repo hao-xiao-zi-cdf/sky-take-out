@@ -15,11 +15,15 @@ import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
 import com.sky.result.PageResult;
+import com.sky.result.Result;
 import com.sky.service.EmployeeService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -112,5 +116,54 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //将查询结果封装成PageResult
         return new PageResult(pageEmployee.getTotal(),pageEmployee.getResult());
+    }
+
+    /**
+     * 账号禁用和启用
+     * @param status
+     * @param id
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        //将要修改的状态封装成实体类对象传入，update修改语句可以复用
+        Employee employee = Employee.builder()
+                .status(status)
+                .id(id)
+                .updateTime(LocalDateTime.now())
+                .updateUser(BaseContext.getCurrentId())
+                .build();
+        employeeMapper.update(employee);
+    }
+
+    /**
+     * 根据id查询员工信息
+     * @param id
+     * @return
+     */
+    @Override
+    public Employee getById(Long id) {
+        Employee employee = employeeMapper.getById(id);
+        //将查询到的密码设置为******,
+        employee.setPassword("******");
+        return employee;
+    }
+
+    /**
+     * 员工信息修改
+     * @param employeeDTO
+     */
+    @Override
+    public void updateUserInfo(EmployeeDTO employeeDTO) {
+        Employee employee = Employee.builder().build();
+
+        //对象属性拷贝
+        BeanUtils.copyProperties(employeeDTO,employee);
+
+        //设置修改时间和修改用户id
+        employee.setUpdateUser(BaseContext.getCurrentId());
+        employee.setUpdateTime(LocalDateTime.now());
+
+        //调用持久层进行修改
+        employeeMapper.update(employee);
     }
 }
