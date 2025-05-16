@@ -11,9 +11,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,6 +32,9 @@ public class DishController {
 
     @Autowired
     private DishService dishService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 新增菜品
@@ -64,6 +69,8 @@ public class DishController {
     @ApiOperation("批量删除菜品")
     public Result deleteBatch(@RequestParam List<Long> ids){
         dishService.deleteBatch(ids);
+        //清理Redis缓存
+        clearCache("dish_*");
         return Result.success();
     }
 
@@ -83,6 +90,8 @@ public class DishController {
     @ApiOperation("修改菜品信息")
     public Result update(@RequestBody DishDTO dishDTO){
         dishService.updateWithFlavor(dishDTO);
+        //清理Redis缓存
+        clearCache("dish_*");
         return Result.success();
     }
 
@@ -108,6 +117,17 @@ public class DishController {
     @ApiOperation("修改菜品起售停售状态")
     public Result startOrStop(@PathVariable Integer status,Long id){
         dishService.startOrStop(status,id);
+        //清理Redis缓存
+        clearCache("dish_*");
         return Result.success();
+    }
+
+    /**
+     * 清理缓存
+     * @param set
+     */
+    private void clearCache(String set){
+        Set keys = redisTemplate.keys(set);
+        redisTemplate.delete(keys);
     }
 }
