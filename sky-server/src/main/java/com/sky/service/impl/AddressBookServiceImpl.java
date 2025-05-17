@@ -22,6 +22,7 @@ public class AddressBookServiceImpl implements AddressBookService {
      * @param addressBook
      * @return
      */
+    @Override
     public List<AddressBook> list(AddressBook addressBook) {
         return addressBookMapper.list(addressBook);
     }
@@ -31,6 +32,7 @@ public class AddressBookServiceImpl implements AddressBookService {
      *
      * @param addressBook
      */
+    @Override
     public void save(AddressBook addressBook) {
         addressBook.setUserId(BaseContext.getCurrentId());
         addressBook.setIsDefault(0);
@@ -43,6 +45,7 @@ public class AddressBookServiceImpl implements AddressBookService {
      * @param id
      * @return
      */
+    @Override
     public AddressBook getById(Long id) {
         AddressBook addressBook = addressBookMapper.getById(id);
         return addressBook;
@@ -53,6 +56,7 @@ public class AddressBookServiceImpl implements AddressBookService {
      *
      * @param addressBook
      */
+    @Override
     public void update(AddressBook addressBook) {
         addressBookMapper.update(addressBook);
     }
@@ -62,6 +66,7 @@ public class AddressBookServiceImpl implements AddressBookService {
      *
      * @param addressBook
      */
+    @Override
     @Transactional
     public void setDefault(AddressBook addressBook) {
         //1、将当前用户的所有地址修改为非默认地址 update address_book set is_default = ? where user_id = ?
@@ -79,6 +84,7 @@ public class AddressBookServiceImpl implements AddressBookService {
      *
      * @param id
      */
+    @Override
     public void deleteById(Long id) {
         addressBookMapper.deleteById(id);
     }
