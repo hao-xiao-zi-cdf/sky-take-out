@@ -1,8 +1,11 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -10,10 +13,12 @@ import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -174,4 +179,113 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.update(orders);
     }
 
+    /**
+     * 分页查询所有历史订单
+     * @param pageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult pageQueryHistoryOrders(OrdersPageQueryDTO pageQueryDTO) {
+        //调用分页插件设置分页条件
+        PageHelper.startPage(pageQueryDTO.getPage(),pageQueryDTO.getPageSize());
+
+        //根据订单状态进行分页查询
+        Page<Orders> page = orderMapper.pageQuery(pageQueryDTO);
+
+        //创建OrderVO列表
+        List<OrderVO> resultList = new ArrayList<>();
+
+        //遍历分页查询结果，获取订单详情，并将其和分页查询结果封装到OrderVO列表
+        if(page != null && page.getTotal() > 0){
+            for(Orders order : page){
+                //获取订单明细
+                List<OrderDetail> list = orderDetailMapper.getByOrderId(order.getId());
+                OrderVO orderVO = new OrderVO();
+                BeanUtils.copyProperties(order,orderVO);
+                orderVO.setOrderDetailList(list);
+                resultList.add(orderVO);
+            }
+        }
+
+        //封装成PageResult对象
+        return new PageResult(page.getTotal(),resultList);
+    }
+
+    /**
+     * 根据订单id查看订单详情
+     * @param id
+     * @return
+     */
+    @Override
+    public OrderVO details(Long id) {
+
+        //根据id查询订单记录
+        Orders orders = orderMapper.getById(id);
+
+        //根据id查看订单明细
+        List<OrderDetail> list = orderDetailMapper.getByOrderId(id);
+
+        //封装成OrderVO对象返回
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(orders,orderVO);
+        orderVO.setOrderDetailList(list);
+
+        return orderVO;
+    }
+
+    /**
+     * 用户取消订单
+     * @param id
+     */
+    @Override
+    public void cancel(Long id) throws Exception {
+        //1.根据id获取订单记录，查看订单状态
+        Orders order = orderMapper.getById(id);
+        Integer status = order.getStatus();
+
+        //2.已接单或派送中需要来联系商家沟通,由商家管理端来设置是否取消订单
+        if(status > 2){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        //3.判断订单状态是否为待接单，调用微信接口进行退款
+        if(status.equals(Orders.REFUND)){
+//            //调用微信支付退款接口
+//            weChatPayUtil.refund(
+//                    order.getNumber(), //商户订单号
+//                    order.getNumber(), //商户退款单号
+//                    new BigDecimal(0.01),//退款金额，单位 元
+//                    new BigDecimal(0.01));//原订单金额
+
+            //支付状态修改为 退款
+            order.setPayStatus(Orders.REFUND);
+        }
+
+        //4.设置订单状态为已取消,取消时间，取消原因
+        order.setStatus(Orders.CANCELLED);
+        order.setCancelReason("用户取消");
+        order.setCancelTime(LocalDateTime.now());
+        orderMapper.update(order);
+    }
+
+    /**
+     * 再来一单
+     * @param id
+     */
+    @Override
+    @Transactional
+    public void repetition(Long id) {
+
+        //根据订单id获取订单明细
+        List<OrderDetail> orderDetailsList = orderDetailMapper.getByOrderId(id);
+
+        //将获取的订单明细批量插入购物车中
+        for(OrderDetail orderDetail : orderDetailsList){
+            ShoppingCart shoppingCart = new ShoppingCart();
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            shoppingCart.setUserId(BaseContext.getCurrentId());
+            BeanUtils.copyProperties(orderDetail,shoppingCart);
+            shoppingCartMapper.insert(shoppingCart);
+        }
+    }
 }
