@@ -93,7 +93,7 @@ public class OrderController {
     @PutMapping("/cancel/{id}")
     @ApiOperation("用户取消订单")
     public Result<OrderVO> cancel(@PathVariable Long id) throws Exception {
-        orderService.cancel(id);
+        orderService.userCancel(id);
         return Result.success();
     }
 
