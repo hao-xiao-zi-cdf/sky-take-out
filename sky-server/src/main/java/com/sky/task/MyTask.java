@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class MyTask {
 
-    @Scheduled(cron = "*/3 * * * * ?")
+//    @Scheduled(cron = "*/3 * * * * ?")
     public void taskOne(){
         log.info("定时任务，每3S执行一次");
     }

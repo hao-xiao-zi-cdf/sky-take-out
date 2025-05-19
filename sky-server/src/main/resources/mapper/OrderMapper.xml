@@ -67,4 +67,17 @@
         </where>
         order by order_time desc
     </select>
+    <update id="updateByTask">
+        UPDATE orders
+        <set>
+            <if test="ordersTask.cancelReason != null">cancel_reason = #{ordersTask.cancelReason},</if>
+            <if test="ordersTask.cancelTime != null">cancel_time = #{ordersTask.cancelTime},</if>
+            <if test="ordersTask.deliveryTime != null">delivery_time = #{ordersTask.deliveryTime},</if>
+            <if test="ordersTask.status != null">status = #{ordersTask.status}</if>
+        </set>
+        where id in
+        <foreach collection="ordersIdList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

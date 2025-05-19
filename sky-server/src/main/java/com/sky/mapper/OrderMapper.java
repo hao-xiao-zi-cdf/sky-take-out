@@ -3,12 +3,14 @@ package com.sky.mapper;
 import com.github.pagehelper.Page;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
+import com.sky.entity.OrdersTask;
 import com.sky.result.PageResult;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -71,4 +73,19 @@ public interface OrderMapper {
      */
     @Select("select count(1) from orders where status = #{status}")
     Integer statusCount(Integer status);
+
+    /**
+     * 根据订单状态和时间查询订单记录
+     * @param status
+     * @param time
+     */
+    @Select("select id from orders where status = #{status} and order_time <= #{time}")
+    List<Long> getByStatusAndTime(Integer status, LocalDateTime time);
+
+    /**
+     * 根据订单id批量处理超时未支付订单
+     * @param ordersTask
+     * @param ordersIdList
+     */
+    void updateByTask(OrdersTask ordersTask, List<Long> ordersIdList);
 }
