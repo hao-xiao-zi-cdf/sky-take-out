@@ -2,6 +2,9 @@ package com.sky.service;
 
 import com.sky.dto.UserLoginDTO;
 import com.sky.entity.User;
+import com.sky.vo.UserReportVO;
+
+import java.time.LocalDate;
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,4 +21,12 @@ public interface UserService {
      * @return
      */
     User login(UserLoginDTO userLoginDTO);
+
+    /**
+     * 用户数据统计
+     * @param begin
+     * @param end
+     * @return
+     */
+    UserReportVO userStatistics(LocalDate begin, LocalDate end);
 }

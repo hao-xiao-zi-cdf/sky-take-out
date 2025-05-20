@@ -1,7 +1,11 @@
 package com.sky.controller.admin;
 
 import com.sky.result.Result;
+import com.sky.service.OrderService;
 import com.sky.service.TurnoverStatisticsService;
+import com.sky.service.UserService;
+import com.sky.service.impl.OrderServiceImpl;
+import com.sky.vo.OrderReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import io.swagger.annotations.Api;
@@ -32,6 +36,12 @@ public class ReportController {
     @Autowired
     private TurnoverStatisticsService turnoverStatisticsService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private OrderService orderService;
+
     /**
      * 根据指定时间区间统计每一天的营业额
      * @param begin
@@ -61,7 +71,7 @@ public class ReportController {
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
 
-        UserReportVO userReportVO = turnoverStatisticsService.userStatistics(begin, end);
+        UserReportVO userReportVO = userService.userStatistics(begin, end);
 
         return Result.success(userReportVO);
     }
