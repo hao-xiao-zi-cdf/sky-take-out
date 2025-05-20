@@ -117,4 +117,12 @@ public interface OrderService {
      * @return
      */
     OrderReportVO ordersStatistics(LocalDate begin, LocalDate end);
+
+    /**
+     * 统计销售前10的商品数据
+     * @param begin
+     * @param end
+     * @return
+     */
+    SalesTop10ReportVO SalesTop10ReportVO(LocalDate begin, LocalDate end);
 }

@@ -573,4 +573,33 @@ public class OrderServiceImpl implements OrderService {
                 .orderCompletionRate(orderCompletionRate)
                 .build();
     }
+
+    /**
+     * 统计销售前10的商品数据
+     * @param begin
+     * @param end
+     * @return
+     */
+    @Override
+    public SalesTop10ReportVO SalesTop10ReportVO(LocalDate begin, LocalDate end) {
+
+        //获取格式化后的日期时间
+        LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
+        List<GoodsSalesDTO> goodsSalesDTOList = orderMapper.getSalesTop10(beginTime, endTime);
+
+        List<String> nameList = new ArrayList<>();
+        List<Integer> numberList = new ArrayList<>();
+
+        //将获取的数据转化为指定的格式
+        for(GoodsSalesDTO item : goodsSalesDTOList){
+            nameList.add(item.getName());
+            numberList.add(item.getNumber());
+        }
+
+        return SalesTop10ReportVO.builder()
+                .nameList(StringUtils.join(nameList,","))
+                .numberList(StringUtils.join(numberList,","))
+                .build();
+    }
 }
