@@ -11,6 +11,7 @@ import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -88,4 +89,11 @@ public interface OrderMapper {
      * @param ordersIdList
      */
     void updateByTask(OrdersTask ordersTask, List<Long> ordersIdList);
+
+    /**
+     * 获取当天的营业额
+     * @param map
+     * @return
+     */
+    Double sumByMap(Map<String, Object> map);
 }

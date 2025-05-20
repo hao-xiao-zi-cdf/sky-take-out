@@ -1,8 +1,13 @@
 package com.sky.mapper;
 
 import com.sky.entity.User;
+import com.sky.vo.UserReportVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -34,4 +39,10 @@ public interface UserMapper {
      */
     @Select("select * from user where id=#{id}")
     User getById(Long userId);
+
+    /**
+     * 获取当天的（总,新）用户数量
+     * @param
+     */
+    Double userSumByMap(Map<String,Object> map);
 }
