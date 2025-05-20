@@ -96,4 +96,11 @@ public interface OrderMapper {
      * @return
      */
     Double sumByMap(Map<String, Object> map);
+
+    /**
+     * 根据条件查询计算某一天的订单数据
+     * @param map
+     * @return
+     */
+    Double countOrderByMap(Map<String, Object> map);
 }

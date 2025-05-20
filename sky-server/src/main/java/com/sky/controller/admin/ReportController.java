@@ -75,4 +75,19 @@ public class ReportController {
 
         return Result.success(userReportVO);
     }
+
+    /**
+     * 订单数据统计
+     * @param begin
+     * @param end
+     * @return
+     */
+    @GetMapping("/ordersStatistics")
+    @ApiOperation("订单数据统计")
+    public Result<OrderReportVO> ordersStatistics(
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
+        OrderReportVO orderReportVO = orderService.ordersStatistics(begin,end);
+        return Result.success(orderReportVO);
+    }
 }

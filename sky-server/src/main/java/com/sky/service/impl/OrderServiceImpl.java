@@ -15,17 +15,17 @@ import com.sky.mapper.*;
 import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
-import com.sky.vo.OrderPaymentVO;
-import com.sky.vo.OrderStatisticsVO;
-import com.sky.vo.OrderSubmitVO;
-import com.sky.vo.OrderVO;
+import com.sky.vo.*;
 import com.sky.websocket.WebSocketServer;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -498,5 +498,79 @@ public class OrderServiceImpl implements OrderService {
         map.put("content", "订单号：" + orders.getNumber());//订单号
 
         webSocketServer.sendToAllClient(JSON.toJSONString(map));
+    }
+
+    /**
+     * 订单数据统计
+     * @param begin
+     * @param end
+     * @return
+     */
+    @Override
+    public OrderReportVO ordersStatistics(LocalDate begin, LocalDate end) {
+
+        List<LocalDate> dateList = new ArrayList<>();
+
+        //根据指定的日期区间计算出每一天日期
+        dateList.add(begin);
+        while(!begin.equals(end)){
+            begin = begin.plusDays(1);
+            dateList.add(begin);
+        }
+
+        List<Integer> totalOrderList = new ArrayList<>();
+        List<Integer> effectivityOrderList = new ArrayList<>();
+
+        for(LocalDate date : dateList){
+            //计算出当天的最小最大时间
+            LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
+            LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+
+            //将查询条件封装到map集合中
+            Map<String,Object> map = new HashMap<>();
+            map.put("beginTime",beginTime);
+            map.put("endTime",endTime);
+
+            //select count(1) from orders where order_time >= ? and order_time <= ? and status = 5
+            //计算当天的总订单
+            Double totalOrder = orderMapper.countOrderByMap(map);
+
+            //计算当天的有效订单数
+            map.put("status",Orders.COMPLETED);
+            Double effectivityOrder = orderMapper.countOrderByMap(map);
+
+            //判断获取的数据是否为null
+            totalOrder = totalOrder == null ? 0.0 : totalOrder;
+            effectivityOrder = effectivityOrder == null ? 0.0 : effectivityOrder;
+
+            totalOrderList.add(totalOrder.intValue());
+            effectivityOrderList.add(effectivityOrder.intValue());
+        }
+
+        //将获取的数据转化为指定的格式
+        String dateString = StringUtils.join(dateList, ",");
+        String totalOrderString = StringUtils.join(totalOrderList, ",");
+        String effectivityOrderString = StringUtils.join(effectivityOrderList, ",");
+
+        //计算指定日期区间内的订单总数，有效订单数量
+        Integer totalCount = 0;
+        Integer effectivityCount = 0;
+        for(Integer item : totalOrderList){totalCount += item;}
+        for(Integer item : effectivityOrderList){effectivityCount += item;}
+
+        //计算订单完成率
+        Double orderCompletionRate = 0.0;
+        if(totalCount != 0){
+            orderCompletionRate = effectivityCount.doubleValue() / totalCount;
+        }
+
+        return OrderReportVO.builder()
+                .dateList(dateString)
+                .orderCountList(totalOrderString)
+                .validOrderCountList(effectivityOrderString)
+                .totalOrderCount(totalCount)
+                .validOrderCount(effectivityCount)
+                .orderCompletionRate(orderCompletionRate)
+                .build();
     }
 }
