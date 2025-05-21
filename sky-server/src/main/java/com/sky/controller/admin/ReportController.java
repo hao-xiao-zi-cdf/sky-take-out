@@ -2,6 +2,7 @@ package com.sky.controller.admin;
 
 import com.sky.result.Result;
 import com.sky.service.OrderService;
+import com.sky.service.ReportService;
 import com.sky.service.TurnoverStatisticsService;
 import com.sky.service.UserService;
 import com.sky.service.impl.OrderServiceImpl;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -42,6 +44,9 @@ public class ReportController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private ReportService reportService;
 
     /**
      * 根据指定时间区间统计每一天的营业额
@@ -103,5 +108,15 @@ public class ReportController {
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
         SalesTop10ReportVO salesTop10ReportVO = orderService.SalesTop10ReportVO(begin,end);
         return Result.success(salesTop10ReportVO);
+    }
+
+    /**
+     * 导出运营数据报表
+     * @param response
+     */
+    @GetMapping("/export")
+    @ApiOperation("导出运营数据报表")
+    public void export(HttpServletResponse response){
+        reportService.exportBusinessData(response);
     }
 }
